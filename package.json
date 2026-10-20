@@ -1,0 +1,27 @@
+{
+  "name": "hide-profile",
+  "version": "1.1.0",
+  "private": true,
+  "description": "Chrome extension to blur, hide or replace profile pictures on social platforms, with optional swear-word masking and media blur.",
+  "license": "MIT",
+  "keywords": [
+    "chrome-extension",
+    "browser-extension",
+    "manifest-v3",
+    "privacy",
+    "social-media",
+    "profile-picture",
+    "avatar",
+    "blur",
+    "content-filter",
+    "profanity-filter",
+    "digital-wellbeing",
+    "twitter",
+    "linkedin",
+    "peerlist"
+  ],
+  "scripts": {
+    "icons": "node scripts/make-icons.mjs",
+    "zip": "git archive --format=zip -o hide-profile.zip HEAD manifest.json src popup icons"
+  }
+}

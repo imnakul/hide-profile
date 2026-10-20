@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Hide Profile</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body class="no-anim">
+    <main class="app">
+      <header class="header">
+        <div class="brand">
+          <img class="logo" src="../icons/icon48.png" alt="" width="28" height="28" />
+          <div>
+            <h1>Hide Profile</h1>
+            <p class="status" id="status"><span class="dot"></span><span id="statusText">Loading…</span></p>
+          </div>
+        </div>
+        <label class="switch switch-lg" title="Turn on/off (Alt+Shift+H)">
+          <input type="checkbox" id="enabled" />
+          <span class="track"><span class="thumb"></span></span>
+          <span class="sr-only">Enabled</span>
+        </label>
+      </header>
+
+      <div class="content" id="content">
+        <section class="preview" aria-hidden="true">
+          <div class="post">
+            <img class="pv-avatar" alt="" />
+            <div class="post-body">
+              <div class="line w-40"></div>
+              <div class="line w-90"></div>
+              <div class="line w-70"></div>
+            </div>
+          </div>
+          <div class="post">
+            <img class="pv-avatar" alt="" />
+            <div class="post-body">
+              <div class="line w-30"></div>
+              <div class="line w-80"></div>
+            </div>
+          </div>
+          <div class="post">
+            <img class="pv-avatar" alt="" />
+            <div class="post-body">
+              <div class="line w-50"></div>
+              <div class="line w-60"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section">
+          <h2>Style</h2>
+          <div class="segmented" role="radiogroup" aria-label="Style" id="mode">
+            <span class="indicator"></span>
+            <button type="button" role="radio" data-mode="blur">Blur</button>
+            <button type="button" role="radio" data-mode="hide">Hide</button>
+            <button type="button" role="radio" data-mode="replace">Replace</button>
+          </div>
+
+          <div class="collapse" id="avatarPanel">
+            <div class="collapse-inner">
+              <div class="avatars" id="avatars" role="radiogroup" aria-label="Replacement avatar"></div>
+              <p class="hint">Upload any image — it's cropped to a square and stays on your device.</p>
+            </div>
+          </div>
+          <input type="file" id="upload" accept="image/png,image/jpeg,image/webp,image/gif" hidden />
+        </section>
+
+        <section class="section">
+          <h2>Options</h2>
+          <div class="list">
+            <label class="row">
+              <div class="row-text">
+                <span class="row-title">Reveal on hover</span>
+                <span class="row-sub">Peek at the real picture</span>
+              </div>
+              <span class="switch">
+                <input type="checkbox" id="reveal" />
+                <span class="track"><span class="thumb"></span></span>
+              </span>
+            </label>
+            <label class="row">
+              <div class="row-text">
+                <span class="row-title">Smart detection</span>
+                <span class="row-sub">Catch round avatars the site rules miss</span>
+              </div>
+              <span class="switch">
+                <input type="checkbox" id="smart" />
+                <span class="track"><span class="thumb"></span></span>
+              </span>
+            </label>
+          </div>
+        </section>
+
+        <section class="section">
+          <h2>Shield</h2>
+          <div class="list">
+            <label class="row">
+              <div class="row-text">
+                <span class="row-title">Clean language</span>
+                <span class="row-sub">Mask swear words — English &amp; Hindi</span>
+              </div>
+              <span class="switch">
+                <input type="checkbox" id="words" />
+                <span class="track"><span class="thumb"></span></span>
+              </span>
+            </label>
+            <label class="row">
+              <div class="row-text">
+                <span class="row-title">Blur media</span>
+                <span class="row-sub">Blur post images &amp; videos — hover to view</span>
+              </div>
+              <span class="switch">
+                <input type="checkbox" id="media" />
+                <span class="track"><span class="thumb"></span></span>
+              </span>
+            </label>
+          </div>
+        </section>
+
+        <section class="section">
+          <h2>Sites</h2>
+          <div class="chips" id="sites" role="group" aria-label="Sites"></div>
+          <p class="hint"><span class="chip-here" style="display: inline-block"></span> marks the site in this tab.</p>
+        </section>
+      </div>
+
+      <footer class="footer">
+        Toggle anywhere with <kbd>Alt</kbd><kbd>Shift</kbd><kbd>H</kbd>
+      </footer>
+    </main>
+
+    <script src="../src/shared.js"></script>
+    <script src="popup.js"></script>
+  </body>
+</html>
