@@ -23,6 +23,8 @@
 
 Faces anchor how we read. A post from someone attractive, famous or familiar reads differently from the same words under a stranger's photo. Hide Profile takes the faces out of the feed so the words and ideas stand on their own. You can also keep your feed calmer and family-friendly.
 
+https://github.com/user-attachments/assets/84d028de-6bf7-437a-95aa-f18bc597952d
+
 ## Features
 
 | | |
