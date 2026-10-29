@@ -150,6 +150,7 @@ function render() {
   $('#smart').checked = settings.smart;
   $('#words').checked = settings.words;
   $('#media').checked = settings.media;
+  $('#counts').checked = settings.counts;
   $('.app').toggleAttribute('data-off', !settings.enabled);
   renderStatus();
   renderMode();
@@ -188,6 +189,7 @@ async function init() {
   $('#smart').onchange = (e) => save({ smart: e.target.checked });
   $('#words').onchange = (e) => save({ words: e.target.checked });
   $('#media').onchange = (e) => save({ media: e.target.checked });
+  $('#counts').onchange = (e) => save({ counts: e.target.checked });
 
   document.querySelectorAll('#mode button').forEach((b) => {
     b.onclick = () => save({ mode: b.dataset.mode });

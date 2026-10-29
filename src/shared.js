@@ -156,6 +156,7 @@
     smart: true,
     words: false, // mask swear words
     media: false, // blur post images & videos
+    counts: false, // blur follower / subscriber counts
     sites: Object.fromEntries(SITES.map((s) => [s.id, true])),
   };
 
@@ -180,7 +181,11 @@
     'giu'
   );
 
-  const siteForHost = (host) => {
+  // A whole element that reads like "1.2K followers" or "500+ connections".
+  const COUNT_RE =
+    /^[\d.,]+\s*[KMB]?\+?\s*(?:followers?|following|subscribers?|connections?|friends)$/i;
+
+  const siteForHost =(host) => {
     host = host.replace(/^www\./, '');
     return SITES.find((s) => s.hosts.some((h) => host === h || host.endsWith('.' + h)));
   };
@@ -195,5 +200,5 @@
     return { ...DEFAULTS, ...stored, sites: { ...DEFAULTS.sites, ...stored.sites } };
   };
 
-  globalThis.HP = { PRESETS, BLANK, SITES, DEFAULTS, WORDS_RE, siteForHost, avatarUrl, loadSettings };
+  globalThis.HP = { PRESETS, BLANK, SITES, DEFAULTS, WORDS_RE, COUNT_RE, siteForHost, avatarUrl, loadSettings };
 })();

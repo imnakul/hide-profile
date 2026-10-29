@@ -5,6 +5,8 @@
   const ATTR = 'data-hp';
   const MEDIA = 'data-hp-media';
   const ORIG = 'data-hp-orig';
+  const COUNT = 'data-hp-count';
+  const REVEAL = 'data-hp-reveal';
   const imgSel = site.img.join(',');
   const bgSel = (site.bg || []).join(',');
   const mediaSel = (site.media || []).join(',');
@@ -61,6 +63,7 @@
     if (el.hasAttribute(ORIG)) restoreSvg(el);
     el.removeAttribute(ATTR);
     el.removeAttribute(MEDIA);
+    el.removeAttribute(COUNT);
   }
 
   function swapSvg(el) {
@@ -98,7 +101,7 @@
 
   function scan(root) {
     if (root.nodeType === Node.TEXT_NODE) {
-      if (settings.words) maskText(root);
+      checkText(root);
       return;
     }
     if (root.nodeType !== Node.ELEMENT_NODE) return;
@@ -112,12 +115,88 @@
     if (settings.smart || settings.media) each('img', queue);
     if (site.svg) each('svg image', queue);
     if (settings.media) each(mediaSel, (el) => el.setAttribute(MEDIA, ''));
-    if (settings.words) maskTree(root);
+    if (settings.words || settings.counts) {
+      const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+      for (let n; (n = walker.nextNode()); ) checkText(n);
+    }
   }
 
   function clearMarks() {
-    document.querySelectorAll(`[${ATTR}],[${MEDIA}]`).forEach(unmark);
+    document.querySelectorAll(`[${ATTR}],[${MEDIA}],[${COUNT}]`).forEach(unmark);
   }
+
+  function checkText(node) {
+    if (settings.words) maskText(node);
+    if (settings.counts) markCount(node);
+  }
+
+  // ---------- Follower counts ----------
+
+  // Number and label are often split across spans ("<b>1.2K</b> Followers"),
+  // so climb from the text node to the smallest short ancestor that reads as a
+  // count as a whole. Language-agnostic markup, English labels only.
+  const COUNT_PART = /^(?:[\d.,]+\s*[KMB]?\+?|followers?|following|subscribers?|connections?|friends)$/i;
+
+  function markCount(node) {
+    const text = node.data.trim();
+    if (!text || text.length > 40) return;
+    if (!COUNT_PART.test(text) && !HP.COUNT_RE.test(text)) return;
+    let el = node.parentElement;
+    for (let i = 0; i < 4 && el && el !== document.body; i++, el = el.parentElement) {
+      if (el.hasAttribute(COUNT)) return;
+      const full = el.textContent.replace(/\s+/g, ' ').trim();
+      if (full.length > 40) return;
+      if (HP.COUNT_RE.test(full)) {
+        el.setAttribute(COUNT, '');
+        return;
+      }
+    }
+  }
+
+  // ---------- Reveal one post ----------
+
+  // Post containers across supported sites; `article` covers X, Bluesky,
+  // Threads, DEV and Medium.
+  const POST_SEL = [
+    'article',
+    '[role="article"]',
+    'shreddit-post',
+    'shreddit-comment',
+    '.feed-shared-update-v2',
+    'ytd-rich-item-renderer',
+    'ytd-video-renderer',
+    'ytd-compact-video-renderer',
+    'ytd-comment-thread-renderer',
+    'li',
+  ].join(',');
+
+  let revealed = null;
+
+  function hideRevealed() {
+    revealed?.removeAttribute(REVEAL);
+    revealed = null;
+  }
+
+  // Toggles the reveal on the post holding keyboard focus, or the one under
+  // the pointer when nothing is focused. Only one post is revealed at a time.
+  function revealPost() {
+    const focused = document.activeElement !== document.body ? document.activeElement : null;
+    const hovered = [...document.querySelectorAll(':hover')].pop();
+    const post = focused?.closest(POST_SEL) || hovered?.closest(POST_SEL);
+    if (!post || post === revealed) return hideRevealed();
+    hideRevealed();
+    post.setAttribute(REVEAL, '');
+    revealed = post;
+  }
+
+  // Moving focus to another post hides the revealed one again.
+  document.addEventListener('focusin', (e) => {
+    if (revealed && !revealed.contains(e.target)) hideRevealed();
+  });
+
+  chrome.runtime.onMessage.addListener((message) => {
+    if (message?.type === 'reveal-post' && active) revealPost();
+  });
 
   // ---------- Swear words ----------
 
@@ -140,11 +219,6 @@
     }
   }
 
-  function maskTree(root) {
-    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
-    for (let n; (n = walker.nextNode()); ) maskText(n);
-  }
-
   function restoreText() {
     // Skip nodes the page has rewritten since we masked them.
     for (const [node, { orig, text }] of masked) if (node.data === text) node.data = orig;
@@ -155,12 +229,14 @@
 
   function buildCSS(s) {
     // With "reveal on hover", every rule steps aside while the avatar (or its
-    // direct wrapper) is hovered.
-    const nh = s.reveal ? ':not(:hover):not(:hover > *)' : '';
+    // direct wrapper) is hovered. Everything inside a post revealed with the
+    // shortcut is always left alone.
+    const nr = `:not([${REVEAL}] *)`;
+    const nh = (s.reveal ? ':not(:hover):not(:hover > *)' : '') + nr;
     const img = `img[${ATTR}]${nh}`;
     const bg = `[${ATTR}="bg"]${nh}`;
     const svg = `image[${ATTR}]${nh}`;
-    let css = `[${ATTR}],[${MEDIA}],video{transition:filter .25s ${EASE},opacity .25s ${EASE}!important}`;
+    let css = `[${ATTR}],[${MEDIA}],[${COUNT}],video{transition:filter .25s ${EASE},opacity .25s ${EASE}!important}`;
 
     if (s.mode === 'blur') {
       css += `${img},${bg},${svg}{filter:blur(10px) saturate(.6)!important}`;
@@ -177,14 +253,16 @@
     if (s.media) {
       // Videos sit under player overlays (controls, captions), so a hover
       // anywhere in the player reveals them.
-      const vh = s.reveal ? ':not(:hover > *, :hover > * > *, :hover > * > * > *)' : '';
+      const vh = (s.reveal ? ':not(:hover > *, :hover > * > *, :hover > * > * > *)' : '') + nr;
       const blur = 'filter:blur(28px) saturate(.5)!important';
       // Containers (X cards) blur their children so their own rounded clip
       // contains the bleed; images and videos clip it to their box.
       css += `img[${MEDIA}]${nh},video${vh}{${blur};clip-path:inset(0)}`;
-      css += `[${MEDIA}]:not(img)${s.reveal ? ':not(:hover)' : ''} > *{${blur};transform:scale(1.15)}`;
+      css += `[${MEDIA}]:not(img)${s.reveal ? ':not(:hover)' : ''}${nr} > *{${blur};transform:scale(1.15)}`;
       css += `[${MEDIA}]:not(img) > *{transition:filter .25s ${EASE},transform .25s ${EASE}!important}`;
     }
+
+    if (s.counts) css += `[${COUNT}]${nh}{filter:blur(5px)!important}`;
     return css;
   }
 
@@ -196,7 +274,7 @@
       if (m.type === 'childList') {
         for (const n of m.addedNodes) scan(n);
       } else if (m.type === 'characterData') {
-        maskText(m.target);
+        checkText(m.target);
       } else {
         // src/style swapped on a recycled element: re-evaluate from scratch.
         unmark(m.target);
@@ -212,6 +290,7 @@
     if (!on || !settings.words) restoreText();
 
     if (!on) {
+      hideRevealed();
       styleEl?.remove();
       active = false;
       return;
@@ -224,7 +303,7 @@
     observer.observe(document.documentElement, {
       childList: true,
       subtree: true,
-      characterData: settings.words,
+      characterData: settings.words || settings.counts,
       attributes: true,
       attributeFilter: bgSel ? ['src', 'style'] : ['src'],
     });

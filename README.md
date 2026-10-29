@@ -32,6 +32,8 @@ Faces anchor how we read. A post from someone attractive, famous or familiar rea
 | **Smart detection** | Catches small, round avatars the per-site rules miss, so redesigns keep working |
 | **Clean language** | Masks swear words in English, Hinglish and Devanagari (`f•••ing`, `b•••••••`) and catches look-alikes such as `f*ck` and `sh1t` |
 | **Blur media** | Blurs post images, thumbnails and videos until you hover |
+| **Hide follower counts** | Blurs follower, following, subscriber and connection counts so takes stand on their own |
+| **Reveal one post** | <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>R</kbd> reveals just the focused post (or the one under your pointer); press again to hide it. Works with keyboard feed navigation such as <kbd>J</kbd>/<kbd>K</kbd> on X |
 | **Per-site control** | Turn each site on or off, or use the global switch. <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>H</kbd> toggles everything |
 | **Light & dark** | The popup follows your system theme |
 
@@ -78,7 +80,9 @@ The content script (`src/content.js`) runs at `document_start` on supported site
    - Blur uses `filter: blur()`
    - Hide and Replace use `content: url(…)` on `<img>`, and `background-image` for avatars painted as backgrounds (X)
 4. **Clean language** walks text nodes once and masks matches in place, with one precompiled regex. Editable fields are never touched, and turning it off restores the original text.
-5. A `MutationObserver` keeps up with infinite scroll and SPA navigation. Settings apply live without a reload.
+5. **Hide follower counts** finds short elements whose whole text reads like `1.2K followers` or `500+ connections`, including when the number and label sit in separate spans, and marks them with `data-hp-count`.
+6. **Reveal one post** sets `data-hp-reveal` on the closest post container (`article`, Reddit/YouTube/LinkedIn post elements); every rule skips elements inside it. Both shortcuts can be changed at `chrome://extensions/shortcuts`.
+7. A `MutationObserver` keeps up with infinite scroll and SPA navigation. Settings apply live without a reload.
 
 The page's markup is never rewritten, and avatars are styled before they paint, so there's no flash of the real image.
 
@@ -88,6 +92,7 @@ These are deliberately simple, low-cost filters, not AI classifiers:
 
 - Word masking is list-based. It catches common words and look-alikes, but not every spelling or context.
 - **Blur media** blurs *all* sizeable images and videos. It doesn't judge what they show.
+- **Hide follower counts** matches English labels only.
 - Sites change their markup often. If something slips through, please [open an issue](../../issues) or a PR (see below).
 
 ## Contributing

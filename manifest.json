@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Hide Profile",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Blur, hide or replace profile pictures on social platforms. Optional swear-word masking and media blur.",
   "permissions": ["storage"],
   "background": {
@@ -26,6 +26,10 @@
     "toggle": {
       "suggested_key": { "default": "Alt+Shift+H" },
       "description": "Toggle Hide Profile on/off"
+    },
+    "reveal-post": {
+      "suggested_key": { "default": "Alt+Shift+R" },
+      "description": "Reveal the focused post (press again to hide)"
     }
   },
   "content_scripts": [

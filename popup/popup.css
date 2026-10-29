@@ -600,10 +600,18 @@ h2 {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  flex-wrap: wrap;
+  gap: 6px 16px;
   padding: 14px 16px 16px;
   font-size: 11px;
   color: var(--faint);
+}
+
+.footer p {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
 }
 
 kbd {
